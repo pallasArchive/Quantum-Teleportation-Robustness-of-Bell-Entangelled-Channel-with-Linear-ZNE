@@ -1,0 +1,9 @@
+bell,layout,mean_fidelity,standard_error,n,shots
+Phi+,natural,0.9645,0.0013,40,2048
+Phi+,forced,0.9517,0.0013,40,2048
+Phi-,natural,0.9645,0.0013,40,2048
+Phi-,forced,0.9509,0.0014,40,2048
+Psi+,natural,0.9642,0.0013,40,2048
+Psi+,forced,0.9506,0.0013,40,2048
+Psi-,natural,0.9642,0.0013,40,2048
+Psi-,forced,0.9498,0.0014,40,2048

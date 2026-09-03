@@ -10,7 +10,7 @@ Supervisor: Prof. Dr. Shahid Iqbal | Mentors: Ali, Tooba, Osaid
 
 ## Abstract
 
-Teleportation is a core primitive for quantum networks, but fidelity degrades on NISQ hardware via noise channels and compiler-inserted SWAP routing, with unclear relative impact. We simulate four noise channels and natural vs. forced-SWAP qubit layouts on real IBM calibration data (`FakeSherbrooke`), then apply Linear Zero-Noise Extrapolation (ZNE) to mitigate the worst case. Bit-flip and phase-flip prove most damaging on average; forced routing causes a significant **1.40% fidelity drop** (vs. a **2.33% calibration-only prediction**), revealing that real circuit errors partially cancel rather than compound worst-case. ZNE recovers **~2.2 percentage points** of fidelity, showing that software-level mitigation can offset hardware-level routing cost — a practical path toward NISQ-viable quantum communication.
+Teleportation is a core primitive for quantum networks, but fidelity degrades on NISQ hardware via noise channels and compiler-inserted SWAP routing, with unclear relative impact. We simulate four noise channels and natural vs. forced-SWAP qubit layouts on real IBM calibration data (`FakeSherbrooke`), then apply Linear Zero-Noise Extrapolation (ZNE) to mitigate the worst case. Bit-flip and phase-flip prove most damaging on average; forced routing causes a significant **1.41% fidelity drop** (vs. a **2.33% calibration-only prediction**), because single-qubit gate error, readout error, and decoherence form a shared baseline that dilutes the relative comparison between layouts. ZNE recovers **~2.3 percentage points** of fidelity, showing that software-level mitigation can offset hardware-level routing cost — a practical path toward NISQ-viable quantum communication.
 
 ![Teleportation protocol](figures/fig5_teleportation_protocol_diagram.png)
 
@@ -22,20 +22,23 @@ Teleportation is a core primitive for quantum networks, but fidelity degrades on
 |---|---|
 | **1 — Ideal baseline** | All four Bell states reconstruct the input state with F ≈ 1 (to ~10⁻¹³), confirming correct circuit logic before any noise is added. |
 | **2 — Noise channel sweep** | Bit-flip and phase-flip are the *most* damaging channels on average (not depolarizing/amplitude-damping, as originally hypothesized), because they push every state along a single fixed axis. Amplitude-damping is the only channel with a genuine Bell-state-dependent spread (~4% at p = 0.75) once modeled correctly on the entangled pair. |
-| **3 — Routing overhead** | A SWAP-forced qubit layout drops fidelity by **1.40%** relative to a SWAP-free natural layout (z ≈ 14.8, highly significant) — smaller than the 2.33% predicted by a calibration-only worst-case bound, since real gate errors partially cancel rather than compound. |
-| **4 — ZNE mitigation** | Linear Zero-Noise Extrapolation on the worst case (Ψ⁻, forced layout) recovers fidelity from **0.9476 → 0.9700** (~2.2 percentage points), confirmed against a quadratic Lagrange fit (0.9719, <0.2% deviation). |
+| **3 — Routing overhead** | A SWAP-forced qubit layout drops fidelity by **1.41%** relative to a SWAP-free natural layout (z ≈ 14.70, highly significant) — smaller than the 2.33% predicted by a calibration-only bound, since single-qubit error, readout error, and decoherence form a shared baseline that dilutes the relative (though not absolute) comparison. |
+| **4 — ZNE mitigation** | Linear Zero-Noise Extrapolation on the worst case (Ψ⁻, forced layout) recovers fidelity from **0.9476 → 0.9701** (~2.3 percentage points), confirmed against a quadratic Lagrange fit (0.9723, ≈0.2% deviation). |
 
-### Fidelity vs. noise strength, all four channels
-![Fidelity vs noise strength](figures/fig1_fidelity_vs_noise_all_channels.png)
+### Fidelity vs. noise strength, all four channels (per-channel, all Bell states)
+![Channel grid](figures/fig02_channel_grid.png)
 
-### Channel ranking at maximum noise (p = 0.75)
-![Channel ranking](figures/fig2_channel_ranking_at_max_noise.png)
+### Cross-channel comparison and ranking at maximum noise (p = 0.75)
+![Channel comparison and ranking](figures/fig03_channel_comparison_and_ranking.png)
+
+### Qubit roles: natural vs. forced-SWAP layout on FakeSherbrooke
+![Qubit role diagram](figures/fig05_qubit_role_diagram.png)
 
 ### Routing overhead: natural vs. forced-SWAP layout
-![Routing overhead](figures/fig3_routing_natural_vs_forced.png)
+![Routing overhead](figures/fig07_routing_natural_vs_forced.png)
 
 ### ZNE fold-scale sweep and mitigation result
-![ZNE mitigation](figures/fig4_zne_foldscale_and_mitigation.png)
+![ZNE mitigation](figures/fig08_zne_foldscale_and_mitigation.png)
 
 ---
 
@@ -55,14 +58,18 @@ Full mathematical derivations for all four stages are in [`docs/theory_derivatio
 ```
 .
 ├── notebooks/
-│   ├── notebook_1_ideal_and_noise_models.ipynb    # Stages 1 & 2
-│   └── notebook_2_swap_vs_natural_zne.ipynb       # Stages 3 & 4
+│   └── quantum_teleportation_combined.ipynb   # Stages 1-4, single pipeline
 ├── docs/
 │   ├── poster.pdf                 # Final presentation poster
-│   ├── theory_derivations.pdf     # Full hand-derived mathematics, Stages 1–4
-│   └── results_writeup.docx       # Detailed narrative results & analysis
-├── figures/                       # Key result figures (exported from the poster)
-├── results/                       # (add exported CSVs / data tables here)
+│   ├── theory_derivations.pdf     # Full hand-derived mathematics, Stages 1-4
+│   ├── results_writeup.docx       # Detailed narrative results & analysis
+│   └── paper/                     # Full LaTeX research paper
+│       ├── main.tex
+│       ├── Quantum_Teleportation_Robustness_paper.pdf
+│       └── figures/
+├── figures/                       # Publication-quality result figures (generated by the notebook)
+├── results/
+│   └── table2_routing_8_cases.csv # Full Stage-3 routing results table
 ├── requirements.txt
 ├── LICENSE
 └── README.md
@@ -75,10 +82,10 @@ git clone <this-repo-url>
 cd quantum-teleportation-zne-robustness
 python -m venv venv && source venv/bin/activate   # or venv\Scripts\activate on Windows
 pip install -r requirements.txt
-jupyter notebook notebooks/notebook_1_ideal_and_noise_models.ipynb
+jupyter notebook notebooks/quantum_teleportation_combined.ipynb
 ```
 
-Both notebooks were run cell-by-cell start to finish; all self-checks pass (ideal baseline F = 1.0 to 13 decimal places, closed-form/QuTiP/Qiskit agreement to <10⁻⁶, gate-count and ZNE fold-scale values matching the hand derivations in `docs/theory_derivations.pdf`).
+The notebook was run cell-by-cell start to finish; all self-checks pass (ideal baseline F = 1.0 to 13 decimal places, closed-form/QuTiP/Qiskit agreement to <10⁻⁶, gate-count and ZNE fold-scale values matching the hand derivations in `docs/theory_derivations.pdf`). All figures are saved to `figures/` as both 300-dpi PNG and vector PDF, ready to drop into a paper or poster.
 
 ## References
 
